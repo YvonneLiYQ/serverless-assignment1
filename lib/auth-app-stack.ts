@@ -6,6 +6,8 @@ import * as apig from "aws-cdk-lib/aws-apigateway";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as node from "aws-cdk-lib/aws-lambda-nodejs";
+
+
 export class AuthAppStack extends cdk.Stack {
   private auth: apig.IResource;
   private userPoolId: string;
@@ -37,7 +39,17 @@ export class AuthAppStack extends cdk.Stack {
     });
 
     this.auth = authApi.root.addResource("auth");
+
+    this.addAuthRoute(
+      "signup",
+      "POST",
+      "SignupFn",
+      'signup.ts'
+    );
+
+  
   }
+
   private addAuthRoute(
     resourceName: string,
     method: string,

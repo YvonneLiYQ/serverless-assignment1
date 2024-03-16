@@ -3,7 +3,7 @@ import * as lambdanode from "aws-cdk-lib/aws-lambda-nodejs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as custom from "aws-cdk-lib/custom-resources";
-import { Construct } from "constructs";
+import {Construct} from "constructs";
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { generateBatch } from "../shared/util";
 import { movies, movieCasts } from "../seed/movies";
@@ -33,6 +33,19 @@ export class RestAPIStack extends cdk.Stack {
       indexName: "roleIx",
       sortKey: { name: "roleName", type: dynamodb.AttributeType.STRING },
     });
+    const movieReviewTable = new dynamodb.Table(this, 'MovieReviews', {
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      partitionKey: {name: 'MovieId', type: dynamodb.AttributeType.NUMBER},
+      sortKey: {name: 'ReviewDate', type: dynamodb.AttributeType.STRING},
+      tableName: 'MovieReviews',
+      removalPolicy: cdk.RemovalPolicy.DESTROY, 
+  });
+  movieReviewTable.addGlobalSecondaryIndex({
+    indexName: 'ReviewerNameIndex',
+    partitionKey: {name: 'ReviewerName', type: dynamodb.AttributeType.STRING},
+    projectionType: dynamodb.ProjectionType.ALL,
+});
+
     // Functions 
     const getMovieByIdFn = new lambdanode.NodejsFunction(
       this,

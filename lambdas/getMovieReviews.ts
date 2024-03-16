@@ -1,7 +1,7 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, QueryCommand, QueryCommandInput } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, QueryCommand, QueryCommandInput} from "@aws-sdk/lib-dynamodb";
 
 const ddbDocClient = createDocumentClient();
 
@@ -10,7 +10,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         console.log("Event: ", event);
         const parameters = event?.pathParameters;
         const movieId = parameters?.movieId ? parseInt(parameters.movieId) : undefined;
-        
+        const minRating = event.queryStringParameters?.minRating;
+        const reviewerName = parameters?.reviewerName;
+
 
         if (!movieId) {
             return {
@@ -22,7 +24,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
             };
         }
 
-        const queryOutput = await ddbDocClient.send(
+       /* const queryOutput = await ddbDocClient.send(
             new QueryCommand({
                 TableName: process.env.TABLE_NAME, // 确保环境变量名称正确
                 KeyConditionExpression: "MovieId = :movieId",
@@ -30,7 +32,34 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
                     ":movieId": movieId,
                 },
             })
-        );
+        );*/
+        let filterExpression = '';
+        let expressionAttributeValues: any = {
+            ":movieId": movieId,
+        };
+
+        if (minRating) {
+            filterExpression += 'Rating >= :minRating';
+            expressionAttributeValues[":minRating"] = parseInt(minRating);
+        }
+
+        if (reviewerName) {
+            filterExpression += filterExpression ? ' AND ' : '';
+            filterExpression += 'ReviewerName = :reviewerName';
+            expressionAttributeValues[":reviewerName"] = reviewerName;
+        }
+        const queryCommandInput: any = {
+            TableName: process.env.TABLE_NAME, 
+            KeyConditionExpression: "MovieId = :movieId",
+            ExpressionAttributeValues: expressionAttributeValues,
+        };
+        if (filterExpression) {
+            queryCommandInput["FilterExpression"] = filterExpression;
+        }
+
+        const queryOutput = await ddbDocClient.send(new QueryCommand(queryCommandInput));
+
+
         console.log("QueryCommand response: ", queryOutput);
 
         // Return Response

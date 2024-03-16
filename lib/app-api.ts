@@ -236,6 +236,8 @@ movieReviewEndpoint.addMethod(
   "POST",
   new apig.LambdaIntegration(newReviewFn, { proxy: true })
 );
+const reviewerEndpoint = movieReviewEndpoint.addResource("{reviewerName}");
+        reviewerEndpoint.addMethod("GET", new apig.LambdaIntegration(getReviewsByIdFn, { proxy: true }));
 
 
 

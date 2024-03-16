@@ -44,7 +44,7 @@ export class AppApi extends Construct {
     const movieReviewTable = new dynamodb.Table(this, 'MovieReviews', {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       partitionKey: {name: 'MovieId', type: dynamodb.AttributeType.NUMBER},
-      sortKey: {name: 'ReviewDate', type: dynamodb.AttributeType.STRING},
+      sortKey: {name: 'ReviewName', type: dynamodb.AttributeType.STRING},
       tableName: 'MovieReviews',
       removalPolicy: cdk.RemovalPolicy.DESTROY, 
   });
@@ -155,8 +155,23 @@ export class AppApi extends Construct {
       TABLE_NAME: movieReviewTable.tableName,
       REGION: 'eu-west-1',
       },
-      }
-      );
+      });
+
+      const updateMovieReviewFn = new lambdanode.NodejsFunction(
+        this,
+        "updateMovieReviewFn",
+        {
+        architecture: lambda.Architecture.ARM_64,
+        runtime: lambda.Runtime.NODEJS_18_X,
+        entry: `${__dirname}/../lambdas/addMovieReview.ts`,
+        timeout: cdk.Duration.seconds(10),
+        memorySize: 128,
+        environment: {
+            TABLE_NAME: movieReviewTable.tableName,
+            REGION: 'eu-west-1',
+        },
+        });
+
       new custom.AwsCustomResource(this, "moviesddbInitData", {
         onCreate: {
           service: "DynamoDB",
@@ -186,6 +201,7 @@ export class AppApi extends Construct {
         movieCastsTable.grantReadData(getMovieByIdFn);
         movieReviewTable.grantReadData(getReviewsByIdFn);
         movieReviewTable.grantReadData(newReviewFn);
+        movieReviewTable.grantReadWriteData(updateMovieReviewFn);
 
         // REST API 
     const api = new apig.RestApi(this, "RestAPI", {
@@ -236,8 +252,11 @@ movieReviewEndpoint.addMethod(
   "POST",
   new apig.LambdaIntegration(newReviewFn, { proxy: true })
 );
+
 const reviewerEndpoint = movieReviewEndpoint.addResource("{reviewerName}");
-        reviewerEndpoint.addMethod("GET", new apig.LambdaIntegration(getReviewsByIdFn, { proxy: true }));
+reviewerEndpoint.addMethod("GET", new apig.LambdaIntegration(getReviewsByIdFn, { proxy: true }));
+reviewerEndpoint.addMethod("PUT", new apig.LambdaIntegration(updateMovieReviewFn, { proxy: true }));
+  
 
 
 

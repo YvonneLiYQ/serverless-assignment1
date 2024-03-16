@@ -349,7 +349,7 @@ export const movieCasts: MovieCast[] = [
     roleDescription: "description of character 3",
   },
 ];
-export const movieReview: MovieReview[] = [
+export const movieReviews: MovieReview[] = [
   {
     MovieId: 1234,
     ReviewerName: "Joe Bloggs",

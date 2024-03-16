@@ -1,9 +1,13 @@
-import { Aws } from "aws-cdk-lib";
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as apig from "aws-cdk-lib/aws-apigateway";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import * as custom from "aws-cdk-lib/custom-resources";
 import * as node from "aws-cdk-lib/aws-lambda-nodejs";
+import {generateBatch} from "../shared/util";
+import {movies, movieCasts} from "../seed/movies";
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 type AppApiProps = {
   userPoolId: string;
@@ -14,6 +18,7 @@ export class AppApi extends Construct {
   constructor(scope: Construct, id: string, props: AppApiProps) {
     super(scope, id);
 
+    
     const appApi = new apig.RestApi(this, "AppApi", {
       description: "App RestApi",
       endpointTypes: [apig.EndpointType.REGIONAL],

@@ -50,22 +50,7 @@ export const movies : Movie[] = [
     vote_average: 7.2,
     vote_count: 1181
   },
-  {
-    adult: false,
-    backdrop_path: '/15Fe18IglCCP1jJoj5F529on0IA.jpg',
-    genre_ids: [ 28, 35 ],
-    id: 1029575,
-    original_language: 'en',
-    original_title: 'The Family Plan',
-    overview: "Dan Morgan is many things: a devoted husband, a loving father, a celebrated car salesman. He's also a former assassin. And when his past catches up to his present, he's forced to take his unsuspecting family on a road trip unlike any other.",
-    popularity: 954.371,
-    poster_path: '/jLLtx3nTRSLGPAKl4RoIv1FbEBr.jpg',
-    release_date: '2023-12-14',
-    title: 'The Family Plan',
-    video: false,
-    vote_average: 7.3,
-    vote_count: 457
-  },
+
   {
     adult: false,
     backdrop_path: '/bmlkLCjrIWnnZzdAQ4uNPG9JFdj.jpg',
@@ -242,54 +227,7 @@ export const movies : Movie[] = [
     vote_average: 7.2,
     vote_count: 1645
   },
-  {
-    adult: false,
-    backdrop_path: '/X8yF6STUk5Zr5nAuLBJiio8Sxh.jpg',
-    genre_ids: [ 18, 10749 ],
-    id: 1143183,
-    original_language: 'tl',
-    original_title: 'Rewind',
-    overview: "Mary (Marian Rivera) loves John (Dingdong Dantes) for as long as she can remember. But after years of marriage, John's priorities shift, leading to a strained relationship with Mary, which causes a tragic accident that takes away Mary's life. Until one day, John gets an extraordinary proposition - to rewind time and save the life of the woman he loves.",
-    popularity: 506.227,
-    poster_path: '/vW80VheMJhHsj0pDVYJL3qAMWMd.jpg',
-    release_date: '2023-12-25',
-    title: 'Rewind',
-    video: false,
-    vote_average: 0,
-    vote_count: 0
-  },
-  {
-    adult: false,
-    backdrop_path: '/4mmrgZW9bcgMRFdV1lCcXqCEXEr.jpg',
-    genre_ids: [ 28, 18, 12, 9648, 53 ],
-    id: 755401,
-    original_language: 'en',
-    original_title: 'Skydog',
-    overview: 'After a high school senior working on his pilot’s license rescues a dog named Oreo, he finds out his mom is a CIA agent who’s been captured. He teams up with Oreo and a new friend to find his mother and uncover double agents inside the CIA.',
-    popularity: 504.779,
-    poster_path: '/5M3bY1rl9QIQSmrAGPEt9qutj64.jpg',
-    release_date: '2020-10-20',
-    title: 'Skydog',
-    video: false,
-    vote_average: 7.3,
-    vote_count: 8
-  },
-  {
-    adult: false,
-    backdrop_path: '/zIYROrkHJPYB3VTiW1L9QVgaQO.jpg',
-    genre_ids: [ 28, 35 ],
-    id: 897087,
-    original_language: 'en',
-    original_title: 'Freelance',
-    overview: 'An ex-special forces operative takes a job to provide security for a journalist as she interviews a dictator, but a military coup breaks out in the middle of the interview, they are forced to escape into the jungle where they must survive.',
-    popularity: 501.319,
-    poster_path: '/7Bd4EUOqQDKZXA6Od5gkfzRNb0.jpg',
-    release_date: '2023-10-05',
-    title: 'Freelance',
-    video: false,
-    vote_average: 6.5,
-    vote_count: 390
-  },
+  
   {
     adult: false,
     backdrop_path: '/t5zCBSB5xMDKcDqe91qahCOUYVV.jpg',

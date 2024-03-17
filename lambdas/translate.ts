@@ -61,7 +61,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     const queryCommandInput: any = {
-        TableName: process.env.TABLE_NAME, // 确保环境变量名称正确
+        TableName: process.env.TABLE_NAME, 
         KeyConditionExpression: '#reviewerName = :reviewerName AND #movieId = :movieId',
         ExpressionAttributeNames: {
             '#reviewerName': 'ReviewerName',

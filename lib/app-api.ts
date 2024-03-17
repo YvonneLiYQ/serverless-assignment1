@@ -182,6 +182,18 @@ export class AppApi extends Construct {
               REGION: 'eu-west-1',
           },
       });
+      const getReviewsByParam = new lambdanode.NodejsFunction(this, 'GetReviewsByParam', {
+        architecture: lambda.Architecture.ARM_64,
+        runtime: lambda.Runtime.NODEJS_16_X,
+        entry: `${__dirname}/../lambdas/getReviewsByParams.ts`,
+        timeout: cdk.Duration.seconds(10),
+        memorySize: 128,
+        environment: {
+            TABLE_NAME: movieReviewTable.tableName,
+            REGION: 'eu-west-1',
+        },
+    })
+
 
 
       new custom.AwsCustomResource(this, "moviesddbInitData", {
@@ -215,6 +227,7 @@ export class AppApi extends Construct {
         movieReviewTable.grantReadData(newReviewFn);
         movieReviewTable.grantReadWriteData(updateMovieReviewFn);
         movieReviewTable.grantReadData(getReviewsByReviewerFn);
+        movieReviewTable.grantReadWriteData(getReviewsByParam);
 
         // REST API 
     const api = new apig.RestApi(this, "RestAPI", {
@@ -266,8 +279,10 @@ movieReviewEndpoint.addMethod(
   new apig.LambdaIntegration(newReviewFn, { proxy: true })
 );
 
-const reviewerEndpoint = movieReviewEndpoint.addResource("{reviewerName}");
-reviewerEndpoint.addMethod("GET", new apig.LambdaIntegration(getReviewsByIdFn, { proxy: true }));
+//const reviewerEndpoint = movieReviewEndpoint.addResource("{reviewerName}");
+//reviewerEndpoint.addMethod("GET", new apig.LambdaIntegration(getReviewsByIdFn, { proxy: true }));
+const reviewerEndpoint = movieReviewEndpoint.addResource("{param}");
+reviewerEndpoint.addMethod("GET", new apig.LambdaIntegration(getReviewsByParam, {proxy: true}));
 reviewerEndpoint.addMethod("PUT", new apig.LambdaIntegration(updateMovieReviewFn, { proxy: true }));
 const reviewsEndpoint = api.root.addResource('reviews');
 const allReviewsEndpoint = reviewsEndpoint.addResource('{reviewerName}');

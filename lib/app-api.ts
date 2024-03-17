@@ -44,7 +44,7 @@ export class AppApi extends Construct {
     const movieReviewTable = new dynamodb.Table(this, 'MovieReviews', {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       partitionKey: {name: 'MovieId', type: dynamodb.AttributeType.NUMBER},
-      sortKey: {name: 'ReviewName', type: dynamodb.AttributeType.STRING},
+      sortKey: {name: 'ReviewerName', type: dynamodb.AttributeType.STRING},
       tableName: 'MovieReviews',
       removalPolicy: cdk.RemovalPolicy.DESTROY, 
   });
@@ -53,6 +53,29 @@ export class AppApi extends Construct {
     partitionKey: {name: 'ReviewerName', type: dynamodb.AttributeType.STRING},
     projectionType: dynamodb.ProjectionType.ALL,
 });
+
+const appApi = new apig.RestApi(this, "AppApi", {
+  description: "App RestApi",
+  endpointTypes: [apig.EndpointType.REGIONAL],
+  defaultCorsPreflightOptions: {
+      allowOrigins: apig.Cors.ALL_ORIGINS,
+  },
+});
+
+const appCommonFnProps = {
+  architecture: lambda.Architecture.ARM_64,
+  timeout: cdk.Duration.seconds(10),
+  memorySize: 128,
+  runtime: lambda.Runtime.NODEJS_16_X,
+  handler: "handler",
+  environment: {
+      USER_POOL_ID: props.userPoolId,
+      CLIENT_ID: props.userPoolClientId,
+      REGION: cdk.Aws.REGION,
+  },
+};
+
+
 
     // Functions 
     const getMovieByIdFn = new lambdanode.NodejsFunction(
@@ -163,7 +186,7 @@ export class AppApi extends Construct {
         {
         architecture: lambda.Architecture.ARM_64,
         runtime: lambda.Runtime.NODEJS_18_X,
-        entry: `${__dirname}/../lambdas/addMovieReview.ts`,
+        entry: `${__dirname}/../lambdas/updateMovieReview.ts`,
         timeout: cdk.Duration.seconds(10),
         memorySize: 128,
         environment: {
@@ -182,6 +205,33 @@ export class AppApi extends Construct {
               REGION: 'eu-west-1',
           },
       });
+      const getReviewByIdAndReviewerFn = new node.NodejsFunction(this, "GetReviewByIdAndReviewerFn", {
+        ...appCommonFnProps,
+        entry: "./lambdas/getReviewByIdAndReviewer.ts",
+        environment: {
+            ...appCommonFnProps.environment, 
+            TABLE_NAME: movieReviewTable.tableName, 
+        }
+    });
+
+    const translateFn = new node.NodejsFunction(this, "Translate", {
+      ...appCommonFnProps,
+      entry: "./lambdas/translate.ts",
+      environment: {
+          ...appCommonFnProps.environment, 
+          TABLE_NAME: movieReviewTable.tableName, 
+      },
+  });
+
+//A new IAM which allow translate service
+  const translatePolicy = new iam.PolicyStatement({
+    actions: ["translate:TranslateText"], 
+    resources: ["*"], 
+});
+
+translateFn.addToRolePolicy(translatePolicy);
+
+
       const getReviewsByParam = new lambdanode.NodejsFunction(this, 'GetReviewsByParam', {
         architecture: lambda.Architecture.ARM_64,
         runtime: lambda.Runtime.NODEJS_16_X,
@@ -228,7 +278,23 @@ export class AppApi extends Construct {
         movieReviewTable.grantReadWriteData(updateMovieReviewFn);
         movieReviewTable.grantReadData(getReviewsByReviewerFn);
         movieReviewTable.grantReadWriteData(getReviewsByParam);
+        movieReviewTable.grantReadData(getReviewByIdAndReviewerFn);
+        movieReviewTable.grantReadWriteData(translateFn);
+// authorizer
+const authorizerFn = new node.NodejsFunction(this, "AuthorizerFn", {
+  ...appCommonFnProps,
+  entry: "./lambdas/auth/authorizer.ts",
+});
 
+const requestAuthorizer = new apig.RequestAuthorizer(
+  this,
+  "RequestAuthorizer",
+  {
+      identitySources: [apig.IdentitySource.header("cookie")],
+      handler: authorizerFn,
+      resultsCacheTtl: cdk.Duration.minutes(0),
+  }
+);
         // REST API 
     const api = new apig.RestApi(this, "RestAPI", {
       description: "demo api",
@@ -242,6 +308,7 @@ export class AppApi extends Construct {
         allowOrigins: ["*"],
       },
     });
+    
 
     const moviesEndpoint = api.root.addResource("movies");
     moviesEndpoint.addMethod(
@@ -283,13 +350,23 @@ movieReviewEndpoint.addMethod(
 //reviewerEndpoint.addMethod("GET", new apig.LambdaIntegration(getReviewsByIdFn, { proxy: true }));
 const reviewerEndpoint = movieReviewEndpoint.addResource("{param}");
 reviewerEndpoint.addMethod("GET", new apig.LambdaIntegration(getReviewsByParam, {proxy: true}));
-reviewerEndpoint.addMethod("PUT", new apig.LambdaIntegration(updateMovieReviewFn, { proxy: true }));
+
+reviewerEndpoint.addMethod('PUT', new apig.LambdaIntegration(updateMovieReviewFn, {proxy: true}),{
+  authorizer: requestAuthorizer,
+  authorizationType: apig.AuthorizationType.CUSTOM,
+});
+
 const reviewsEndpoint = api.root.addResource('reviews');
 const allReviewsEndpoint = reviewsEndpoint.addResource('{reviewerName}');
+
 allReviewsEndpoint.addMethod('GET', new apig.LambdaIntegration(getReviewsByReviewerFn));
 
 
+const reviewByIdAndReviewer = allReviewsEndpoint.addResource('{movieId}');
+reviewByIdAndReviewer.addMethod('GET', new apig.LambdaIntegration(getReviewByIdAndReviewerFn));
 
+const translateReview = reviewByIdAndReviewer.addResource('translation');
+translateReview.addMethod('GET', new apig.LambdaIntegration(translateFn));
       }
     }
     

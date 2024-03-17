@@ -302,6 +302,7 @@ export const movieReviews: MovieReview[] = [
     Content: 'An emotional rollercoaster that keeps you on the edge of your seat.',
     Rating: 5,
   },
+  
   {
     MovieId: 2345,
     ReviewerName: 'JaneSmith',
@@ -310,11 +311,12 @@ export const movieReviews: MovieReview[] = [
     Rating: 4,
   },
   {
-    MovieId: 695721,
-    ReviewerName: 'AlexGreen',
-    ReviewDate: '2024-03-04',
-    Content: 'A visually stunning masterpiece that falls short on storytelling.',
-    Rating: 3,
+    MovieId: 12345,
+    ReviewerName: 'JaneSmith',
+    ReviewDate: '2024-03-02',
+    Content: 'An intriguing exploration of complex characters.',
+    Rating: 1,
   },
+  
 ];
 
